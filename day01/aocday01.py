@@ -18,3 +18,5 @@ elf_calories.sort(reverse=True)
 
 print('---------------')
 print(elf_calories[0])
+print(elf_calories[0:3])
+print(sum(elf_calories[0:3]))

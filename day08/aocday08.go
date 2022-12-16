@@ -15,21 +15,80 @@ func main() {
 
     fmt.Printf("dimensions: %d x %d\n", rows, cols)
 
-    visible := 0
+    high_score := 0
     for row, _ := range treemap {
       for col, _ := range treemap[row] {
         if(row == 0 || col == 0 || row == (rows - 1) || col == (cols - 1)) {
           // edge trees
-          visible = visible + 1
         } else {
-          visible = visible + check_visible(treemap, row, col)
-          fmt.Printf("visible count now: %d\n\n", visible)
+          score := scenic_score(treemap, row, col)
+          if(score > high_score) {
+            high_score = score
+          }
+          fmt.Printf("high score now: %d\n\n", high_score)
         }
       }
     }
 
-    fmt.Println("total visible: %d\n", visible)
+    fmt.Printf("final high score: %d\n", high_score)
 }
+
+func scenic_score(m [][]int, r int, c int) int {
+  // check in all four directions, here to the edge or a tree
+  // equal or higher to us.  count how far we can see in each direction.
+  // scenic score is the product of all four viewing distances
+  h := m[r][c]
+
+  fmt.Printf("---- checking tree at [%d, %d], height = %d\n", r, c, h)
+
+  // look up
+  d1 := 0
+  for row := r - 1 ; row >= 0 ; row-- {
+    d1 = d1 + 1
+    if(m[row][c] >= h) {
+      fmt.Printf("[UP] tree at [%d, %d] is %d, viewing distance: %d\n", row, c, m[row][c], d1)
+      break
+    }
+  }
+  fmt.Printf("[UP] distance: %d\n", d1)
+
+  // look down
+  d2 := 0
+  for row := r + 1 ; row < len(m) ; row++ {
+    d2 = d2 + 1
+    if(m[row][c] >= h) {
+      fmt.Printf("[DOWN] tree at [%d, %d] is %d, viewing distance: %d\n", row, c, m[row][c], d2)
+      break
+    }
+  }
+  fmt.Printf("[DOWN] distance: %d\n", d1)
+
+  // look left
+  d3 := 0
+  for col := c - 1 ; col >= 0 ; col-- {
+    d3 = d3 + 1
+    if(m[r][col] >= h) {
+      fmt.Printf("[LEFT] tree at [%d, %d] is %d, viewing distance: %d\n", r, col, m[r][col], d3)
+      break
+    }
+  }
+  fmt.Printf("[LEFT] distance: %d\n", d1)
+
+  // look right
+  d4 := 0
+  for col := c + 1 ; col < len(m[0]) ; col++ {
+    d4 = d4 + 1
+    if(m[r][col] >= h) {
+      fmt.Printf("[RIGHT] tree at [%d, %d] is %d, viewing distance: %d\n", r, col, m[r][col], d4)
+      break
+    }
+  }
+  fmt.Printf("[RIGHT] distance: %d\n", d1)
+
+  fmt.Printf("scenic score: %d\n", (d1 * d2 * d3 * d4))
+  return (d1 * d2 * d3 * d4)
+}
+
 
 func check_visible(m [][]int, r int, c int) int {
   // check in all four directions, here out to each edge

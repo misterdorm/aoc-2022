@@ -4,6 +4,7 @@ import (
     "fmt"
     "os"
     "regexp"
+    "sort"
     "strconv"
     "strings"
 )
@@ -20,15 +21,88 @@ type Monkey struct {
 var debug bool
 
 func main() {
+
+  rounds := 20
+  monkies := read_notes()
+  inspections := map[int]int{}
+
   debug = true
 
-//  rounds := 20
-  monkies := read_notes()
+  for r := 0; r < rounds; r++ {
+    for n, m := range monkies {
+      for i := range m.items {
+        inspections[n]++
+        if(debug) { fmt.Printf("round: %d, monkey: %d, item: %d(%d)", r, n, i, m.items[i]) }
+        m.items[i] = adjust_worry(m, i)
+        m.items[i] = adjust_damage(m, i)
+        if(debug) { fmt.Printf(" after worry/damage: %d\n", m.items[i]) }
 
-  for i := range monkies {
-    _ = i
+        if(m.items[i] % m.test == 0) {
+          monkies[m.t].items = append(monkies[m.t].items, m.items[i])
+          if(debug) { fmt.Printf("---> [%d, T] throwing to %d\n", m.test, m.t) }
+        } else {
+          monkies[m.f].items = append(monkies[m.f].items, m.items[i])
+          if(debug) { fmt.Printf("---> [%d, F] throwing to %d\n", m.test, m.f) }
+        }
+
+        if(debug) { fmt.Println() }
+      }
+      // clear items list, monkey threw them all
+      monkies[n].items = []int{}
+    }
+
+    debug = false
+
+    fmt.Printf("Round %d\n", r)
+    for i, m := range monkies {
+      fmt.Printf("Monkey %d: %d\n", i, m.items)
+    }
+    fmt.Println()
   }
 
+  ii := map[int]int{}
+  for k, v := range inspections {
+    ii[v] = k
+  }
+
+  var a []int
+  for k := range ii {
+    a = append(a, k)
+  }
+
+  sort.Sort(sort.Reverse(sort.IntSlice(a)))
+
+  monkey_business := 0
+  for _, k := range a {
+    fmt.Printf("Monkey %d inspected items %d times.\n", ii[k], k)
+    if(monkey_business == 0) {
+      monkey_business = k
+    } else {
+      monkey_business = monkey_business * k
+      break
+    }
+  }
+
+  fmt.Printf("monkey business: %d\n", monkey_business)
+
+}
+
+func adjust_worry(m Monkey, i int) int {
+  switch m.op {
+  case "+":
+    return m.items[i] + m.arg
+  case "*":
+    return m.items[i] * m.arg
+  case "++":
+    return m.items[i] + m.items[i]
+  case "**":
+    return m.items[i] * m.items[i]
+  }
+  return m.items[i]
+}
+
+func adjust_damage(m Monkey, i int) int {
+  return m.items[i] / 3
 }
 
 func read_notes() []Monkey {

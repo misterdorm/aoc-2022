@@ -2,16 +2,19 @@ package main
 import (
     "bufio"
     "fmt"
+    "math"
     "os"
     "strconv"
     "strings"
 )
 
+var width int
 
 func main() {
   reg_history := make([]int, 1)
   reader := bufio.NewReader(os.Stdin)
 
+  width = 40
   cycle := 0
   reg_history[0] = 1
 
@@ -31,6 +34,7 @@ func main() {
       // addx, 2 cycles
       arg, _ = strconv.Atoi(line[5:])
       reg_history = append(reg_history, reg_history[cycle])
+      draw(cycle, reg_history[cycle])
       cycle++
       reg_history = append(reg_history, reg_history[cycle] + arg)
     } else if(instr == "noop") {
@@ -38,13 +42,29 @@ func main() {
       reg_history = append(reg_history, reg_history[cycle])
     }
 
+    draw(cycle, reg_history[cycle])
     cycle++
-    fmt.Printf("cycle %d: instr: %s, arg: %d, x now %d\n", cycle, instr, arg, reg_history[cycle])
+    //fmt.Printf("cycle %d: instr: %s, arg: %d, x now %d\n", cycle, instr, arg, reg_history[cycle])
 
   }
-  sum := sig_strength(reg_history)
+  //sum := sig_strength(reg_history)
 
-  fmt.Printf("signal strength sum: %d\n", sum)
+  //fmt.Printf("signal strength sum: %d\n", sum)
+}
+
+func draw(cycle int, x int) {
+  pos := cycle % width
+  if(math.Abs(float64(x - pos)) <= 1) {
+    // x value (middle of sprite position) overlaps current pixel by at least 1
+    fmt.Printf("#")
+  } else {
+    fmt.Printf(".")
+  }
+
+  if(pos == width - 1) {
+    // end of the line
+    fmt.Println("")
+  }
 }
 
 func sig_strength(h []int) int {

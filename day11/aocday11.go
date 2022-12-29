@@ -22,11 +22,16 @@ var debug bool
 
 func main() {
 
-  rounds := 20
+  rounds := 10000
   monkies := read_notes()
   inspections := map[int]int{}
 
   debug = true
+
+  shared_mod := 1
+  for _, m := range monkies {
+    shared_mod = shared_mod * m.test
+  }
 
   for r := 0; r < rounds; r++ {
     for n, m := range monkies {
@@ -34,7 +39,7 @@ func main() {
         inspections[n]++
         if(debug) { fmt.Printf("round: %d, monkey: %d, item: %d(%d)", r, n, i, m.items[i]) }
         m.items[i] = adjust_worry(m, i)
-        m.items[i] = adjust_damage(m, i)
+        m.items[i] = adjust_damage(m, i, shared_mod)
         if(debug) { fmt.Printf(" after worry/damage: %d\n", m.items[i]) }
 
         if(m.items[i] % m.test == 0) {
@@ -53,11 +58,16 @@ func main() {
 
     debug = false
 
-    fmt.Printf("Round %d\n", r)
-    for i, m := range monkies {
-      fmt.Printf("Monkey %d: %d\n", i, m.items)
+    if(r == 0 || r == 19 || r % 1000 == 999) {
+      fmt.Printf("Round %d\n", r + 1)
+      for i, _ := range monkies {
+        fmt.Printf("Monkey %d: %d\n", i, inspections[i])
+      }
+      for i, m := range monkies {
+        fmt.Printf("Monkey %d: %d\n", i, m.items)
+      }
+      fmt.Println()
     }
-    fmt.Println()
   }
 
   ii := map[int]int{}
@@ -101,8 +111,8 @@ func adjust_worry(m Monkey, i int) int {
   return m.items[i]
 }
 
-func adjust_damage(m Monkey, i int) int {
-  return m.items[i] / 3
+func adjust_damage(m Monkey, i int, s int) int {
+  return m.items[i] % s
 }
 
 func read_notes() []Monkey {
